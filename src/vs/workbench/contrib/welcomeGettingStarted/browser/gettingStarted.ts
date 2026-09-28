@@ -925,67 +925,45 @@ export class GettingStartedPage extends EditorPane {
 			onShowOnStartupChanged();
 		}));
 
-		const header = $('.header', {},
-			$('h1.product-name.caption', {}, this.productService.nameLong),
-			$('p.subtitle.description', {}, localize({ key: 'gettingStarted.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))
+		// Header with Lisa branding
+		const header = $('.lisa-header', {},
+			$('h1.lisa-title', {}, 'Lisa'),
+			$('p.lisa-subtitle', {}, 'Editing evolved')
 		);
 
-		const leftColumn = $('.categories-column.categories-column-left', {},);
-		const rightColumn = $('.categories-column.categories-column-right', {},);
-
+		// Build the start actions list
 		const startList = this.buildStartList();
+		startList.setLimit(4);
+
+		// Build recent files list
 		const recentList = this.buildRecentlyOpenedList();
-		const gettingStartedList = this.buildGettingStartedWalkthroughsList();
+		recentList.setLimit(5);
 
-		const footerChildren: HTMLElement[] = [];
-		const agentsBanner = createAgentsBanner(
-			{
-				cssClass: 'getting-started-category.agents-banner',
-				source: 'welcomePage',
-			},
-			this.commandService,
-			this.telemetryService,
-			this.configurationService,
-			this.chatEntitlementService,
-			this.defaultAccountService,
+		// Footer with show on startup checkbox
+		const footer = $('.lisa-footer', {},
+			$('div.show-on-startup', {},
+				showOnStartupCheckbox.domNode,
+				showOnStartupLabel
+			)
 		);
-		this.categoriesSlideDisposables.add(agentsBanner.disposables);
-		footerChildren.push(agentsBanner.element);
-		footerChildren.push($('p.showOnStartup', {},
-			showOnStartupCheckbox.domNode,
-			showOnStartupLabel,
+
+		// Main layout structure
+		reset(this.categoriesSlide, $('.lisa-welcome-container', {},
+			header,
+			$('.lisa-content', {},
+				$('.lisa-actions', {}, startList.getDomElement()),
+				$('.lisa-recent', {}, recentList.getDomElement())
+			),
+			footer
 		));
+		this.categoriesPageScrollbar?.scanDomNode();
 
-		const footer = $('.footer', {}, ...footerChildren);
+		this.updateCategoryProgress();
+		this.registerDispatchListeners();
+		this.categoriesPageScrollbar?.scanDomNode();
 
-		const layoutLists = () => {
-			if (gettingStartedList.itemCount) {
-				this.container.classList.remove('noWalkthroughs');
-				reset(rightColumn, gettingStartedList.getDomElement());
-			}
-			else {
-				this.container.classList.add('noWalkthroughs');
-				reset(rightColumn);
-			}
-			setTimeout(() => this.categoriesPageScrollbar?.scanDomNode(), 50);
-			layoutRecentList();
-		};
-
-		const layoutRecentList = () => {
-			if (this.container.classList.contains('noWalkthroughs')) {
-				recentList.setLimit(10);
-				reset(leftColumn, startList.getDomElement());
-				reset(rightColumn, recentList.getDomElement());
-			} else {
-				recentList.setLimit(5);
-				reset(leftColumn, startList.getDomElement(), recentList.getDomElement());
-			}
-		};
-
-		gettingStartedList.onDidChange(layoutLists);
-		layoutLists();
-
-		reset(this.categoriesSlide, $('.gettingStartedCategoriesContainer', {}, header, leftColumn, rightColumn, footer,));
+		this.updateCategoryProgress();
+		this.registerDispatchListeners();
 		this.categoriesPageScrollbar?.scanDomNode();
 
 		this.updateCategoryProgress();

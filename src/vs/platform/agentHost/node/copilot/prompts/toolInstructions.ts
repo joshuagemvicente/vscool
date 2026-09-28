@@ -9,6 +9,7 @@ import { BrowserChatToolReferenceName, browserChatToolReferenceNames } from '../
 import type { SchemaValue } from '../../../common/agentHostSchema.js';
 import { copilotCliConfigSchema } from '../../../common/copilotCliConfig.js';
 import { CLIENT_TOOL_SEARCH_REFERENCE_NAME } from '../../../common/toolSearchConstants.js';
+import { composeSectionOverride } from './systemMessage.js';
 
 /**
  * Model-agnostic guidance for the `tool_instructions` system-prompt section.
@@ -112,38 +113,6 @@ export function universalToolInstructions(context: IToolInstructionContext, line
 }
 
 /**
- * Folds universal tool-instructions `content` into a per-model contributor's
- * `existing` `tool_instructions` override (if any), so a contributor's section
- * is preserved rather than clobbered.
- *
- * @param existing the per-model contributor's `tool_instructions` override, if any.
- */
-function composeToolInstructions(existing: SectionOverride | undefined, content: string): SectionOverride {
-	// No per-model override: append after the SDK foundation section, led by a
-	// newline so it doesn't run on from the foundation content.
-	if (!existing) {
-		return { action: 'append', content: `\n${content}` };
-	}
-	// A `remove` or transform-function override is a deliberate, non-composable
-	// choice by the contributor; preserve it untouched rather than fight it.
-	if (existing.action === 'remove' || typeof existing.action === 'function') {
-		return existing;
-	}
-	// Fold our lines into the contributor's content (preserve it, don't clobber),
-	// then pad relative to the foundation by where this action places the content:
-	// `append` sits after it (lead with a newline), `prepend` sits before it (trail
-	// with a newline), `replace` owns the section (no foundation adjacency, so no
-	// padding — and no leading newline even when the contributor's content is empty).
-	const base = existing.content ?? '';
-	const merged = base ? `${base}\n${content}` : content;
-	switch (existing.action) {
-		case 'append': return { action: 'append', content: `\n${merged}` };
-		case 'prepend': return { action: 'prepend', content: `${merged}\n` };
-		default: return { action: existing.action, content: merged };
-	}
-}
-
-/**
  * Resolves the `tool_instructions` {@link SectionOverride} for a session,
  * composing the universal lines with any override a per-model contributor
  * already set for that section.
@@ -156,5 +125,5 @@ function composeToolInstructions(existing: SectionOverride | undefined, content:
  */
 export function resolveToolInstructionsOverride(context: IToolInstructionContext, existing: SectionOverride | undefined, lines: readonly ToolInstructionLine[] = TOOL_INSTRUCTION_LINES): SectionOverride | undefined {
 	const content = universalToolInstructions(context, lines);
-	return content === undefined ? undefined : composeToolInstructions(existing, content);
+	return content === undefined ? undefined : composeSectionOverride(existing, content);
 }

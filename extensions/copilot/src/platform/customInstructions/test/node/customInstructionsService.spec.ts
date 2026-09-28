@@ -401,4 +401,55 @@ suite('CustomInstructionsService - Skills', () => {
 			expect(await customInstructionsService.isExternalInstructionsFile(tildeFileUri)).toBe(true);
 		});
 	});
+
+	suite('getWorkspaceRules', () => {
+		test('should return .lisa/rules markdown files recursively, sorted by URI', async () => {
+			await mockFiles(fileSystemService, [
+				{ path: '/workspace/.lisa/rules/zeta.md', contents: ['Zeta rule'] },
+				{ path: '/workspace/.lisa/rules/alpha.md', contents: ['Alpha rule'] },
+				{ path: '/workspace/.lisa/rules/nested/beta.md', contents: ['Beta rule'] },
+				{ path: '/workspace/.lisa/rules/notes.txt', contents: ['Not a rule'] },
+				{ path: '/workspace/other/rules/ignored.md', contents: ['Outside .lisa/rules'] },
+			]);
+
+			expect((await customInstructionsService.getWorkspaceRules()).map(uri => uri.path)).toEqual([
+				'/workspace/.lisa/rules/alpha.md',
+				'/workspace/.lisa/rules/nested/beta.md',
+				'/workspace/.lisa/rules/zeta.md',
+			]);
+		});
+
+		test('should return an empty list when .lisa/rules does not exist', async () => {
+			await mockFiles(fileSystemService, [
+				{ path: '/workspace/src/file.ts', contents: ['const x = 1;'] },
+			]);
+
+			expect(await customInstructionsService.getWorkspaceRules()).toEqual([]);
+		});
+
+		test('should collect rules from every workspace folder', async () => {
+			const services = createPlatformServices();
+			services.define(IWorkspaceService, new SyncDescriptor(
+				TestWorkspaceService,
+				[[URI.file('/workspace-a'), URI.file('/workspace-b')], []]
+			));
+			services.define(IConfigurationService, new InMemoryConfigurationService(new DefaultsOnlyConfigurationService()));
+			const multiRootAccessor = services.createTestingAccessor();
+			try {
+				const service = multiRootAccessor.get(ICustomInstructionsService);
+				await mockFiles(multiRootAccessor.get(IFileSystemService) as MockFileSystemService, [
+					{ path: '/workspace-b/.lisa/rules/b.md', contents: ['B rule'] },
+					{ path: '/workspace-a/.lisa/rules/a.md', contents: ['A rule'] },
+				]);
+
+				expect((await service.getWorkspaceRules()).map(uri => uri.path)).toEqual([
+					'/workspace-a/.lisa/rules/a.md',
+					'/workspace-b/.lisa/rules/b.md',
+				]);
+			} finally {
+				multiRootAccessor.dispose();
+				services.dispose();
+			}
+		});
+	});
 });

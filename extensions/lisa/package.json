@@ -1,0 +1,121 @@
+{
+	"name": "lisa",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"version": "10.0.0",
+	"publisher": "vscode",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.140.0"
+	},
+	"categories": [
+		"AI",
+		"Programming Languages",
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"capabilities": {
+		"virtualWorkspaces": true,
+		"untrustedWorkspaces": {
+			"supported": true
+		}
+	},
+	"main": "./out/extension",
+	"scripts": {
+		"compile": "gulp compile-extension:lisa",
+		"watch": "gulp watch-extension:lisa"
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "lisa.tabCompletion.toggle",
+				"title": "%command.tabCompletion.toggle%",
+				"category": "%command.category%"
+			},
+			{
+				"command": "lisa.nextEdit.jump",
+				"title": "%command.nextEdit.jump%",
+				"category": "%command.category%"
+			},
+			{
+				"command": "lisa.nextEdit.clear",
+				"title": "%command.nextEdit.clear%",
+				"category": "%command.category%"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "lisa.nextEdit.jump",
+				"key": "tab",
+				"when": "editorTextFocus && lisa.nextEditAvailable && !inlineSuggestionVisible && !suggestWidgetVisible && !editorTabMovesFocus"
+			},
+			{
+				"command": "lisa.nextEdit.clear",
+				"key": "escape",
+				"when": "editorTextFocus && lisa.nextEditPreviewing"
+			}
+		],
+		"configuration": {
+			"title": "%config.title%",
+			"properties": {
+				"lisa.tabCompletion.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "%config.tabCompletion.enabled%"
+				},
+				"lisa.tabCompletion.debounceMs": {
+					"type": "number",
+					"default": 250,
+					"minimum": 0,
+					"description": "%config.tabCompletion.debounceMs%"
+				},
+				"lisa.tabCompletion.maxPrefixLines": {
+					"type": "number",
+					"default": 120,
+					"minimum": 0,
+					"description": "%config.tabCompletion.maxPrefixLines%"
+				},
+				"lisa.tabCompletion.maxSuffixLines": {
+					"type": "number",
+					"default": 40,
+					"minimum": 0,
+					"description": "%config.tabCompletion.maxSuffixLines%"
+				},
+				"lisa.nextEdit.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "%config.nextEdit.enabled%"
+				},
+				"lisa.nextEdit.debounceMs": {
+					"type": "number",
+					"default": 600,
+					"minimum": 0,
+					"description": "%config.nextEdit.debounceMs%"
+				},
+				"lisa.model.family": {
+					"type": "string",
+					"default": "",
+					"description": "%config.model.family%"
+				}
+			}
+		},
+		"colors": [
+			{
+				"id": "lisa.nextEdit.background",
+				"description": "%colors.nextEdit.background%",
+				"defaults": {
+					"light": "#ffe9b8",
+					"dark": "#4b3f11",
+					"highContrast": "#000000",
+					"highContrastLight": "#ffffff"
+				}
+			}
+		]
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/microsoft/vscode.git"
+	}
+}

@@ -31,6 +31,7 @@ import { IAgentHostManagedSettingsService } from '../agentHostManagedSettingsSer
 import { IAgentHostTerminalManager } from '../agentHostTerminalManager.js';
 import { IAgentHostSessionOpenTelemetry } from '../agentHostSessionOpenTelemetry.js';
 import { IByokLmBridgeRegistry } from '../byokLmBridgeRegistry.js';
+import { readWorkspaceLisaRules } from '../shared/lisaRules.js';
 import { IByokLmProxyService, type IByokLmProxyHandle } from './byokLmProxyService.js';
 import type { ICopilotMcpServerInfo, ICopilotPluginInfo } from './copilotAgent.js';
 import { CopilotGitHubSessionCredentials } from './copilotGitHubCredentials.js';
@@ -989,11 +990,19 @@ export class CopilotSessionLauncher implements ICopilotSessionLauncher {
 		const tools = [...shellTools, ...runtime.createClientSdkTools(toolSearchActive), ...runtime.createServerSdkTools()];
 		const promptOverrides = await applyConfiguredPromptOverrides(promptOverrideString, promptOverrideFile, tools, this._fileService, this._logService);
 		const managedSettingsPermissions = this._managedSettingsService.permissions;
+		// The user's standing rules, resolved once per (re)launch alongside the rest
+		// of the prompt: the SDK takes a system message only at create/resume, so a
+		// rule edit applies the next time the session launches.
+		const lisaRules = plan.workspaceless ? undefined : await readWorkspaceLisaRules(this._fileService, plan.workingDirectory, this._logService);
+		if (lisaRules) {
+			this._logService.info(`[Copilot:${plan.sessionId}] Including workspace Lisa rules (.lisa/rules) in the system message`);
+		}
 		const promptContext: IAgentHostPromptContext = {
 			getSetting: key => this._configurationService.getRootValue(copilotCliConfigSchema, key),
 			hasClientTool: name => clientToolNames.has(name),
 			workspaceless: plan.workspaceless === true,
 			toolSearchActive,
+			...(lisaRules ? { lisaRules } : {}),
 		};
 		const additionalDirectories = plan.additionalDirectories?.map(d => d.fsPath);
 		// Resolved once per (re)launch — the SDK has no mid-session system-message

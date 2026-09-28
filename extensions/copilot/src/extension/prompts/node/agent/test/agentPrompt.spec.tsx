@@ -10,8 +10,11 @@ import { ChatLocation } from '../../../../../platform/chat/common/commonTypes';
 import { StaticChatMLFetcher } from '../../../../../platform/chat/test/common/staticChatMLFetcher';
 import { CodeGenerationTextInstruction, ConfigKey, IConfigurationService } from '../../../../../platform/configuration/common/configurationService';
 import { MockEndpoint } from '../../../../../platform/endpoint/test/node/mockEndpoint';
+import { IFileSystemService } from '../../../../../platform/filesystem/common/fileSystemService';
+import { MockFileSystemService } from '../../../../../platform/filesystem/node/test/mockFileSystemService';
 import { messageToMarkdown } from '../../../../../platform/log/common/messageStringify';
 import { IResponseDelta } from '../../../../../platform/networking/common/fetch';
+import { mockFiles } from '../../../../../platform/promptFiles/test/node/mockFiles';
 import { ITestingServicesAccessor } from '../../../../../platform/test/node/services';
 import { TestWorkspaceService } from '../../../../../platform/test/node/testWorkspaceService';
 import { IWorkspaceService } from '../../../../../platform/workspace/common/workspaceService';
@@ -525,5 +528,57 @@ suite('AgentPrompt - Gemini Flash prompt additions experiment', () => {
 	test('additions are omitted for other Gemini families even when experiment is enabled', async () => {
 		accessor.get(IConfigurationService).setConfig(ConfigKey.EnableGeminiFlashPromptAdditions, true);
 		assertAdditions(await renderForFamily('gemini-2.0-flash'), { readAst: false, toolBatching: false, searchPrecision: false });
+	});
+});
+
+suite('AgentPrompt - workspace .lisa/rules', () => {
+	let accessor: ITestingServicesAccessor;
+
+	beforeAll(() => {
+		const services = createExtensionUnitTestingServices();
+		services.define(IWorkspaceService, new SyncDescriptor(TestWorkspaceService, [[URI.file('/workspace')]]));
+		services.define(IChatMLFetcher, new StaticChatMLFetcher([]));
+		accessor = services.createTestingAccessor();
+	});
+
+	afterAll(() => {
+		accessor.dispose();
+	});
+
+	async function renderPrompt(): Promise<string> {
+		const instaService = accessor.get(IInstantiationService);
+		const endpoint = instaService.createInstance(MockEndpoint, 'gpt-4.1');
+		const props: AgentPromptProps = {
+			priority: 1,
+			endpoint,
+			location: ChatLocation.Panel,
+			promptContext: {
+				chatVariables: new ChatVariablesCollection(),
+				history: [],
+				query: 'hello',
+				conversation: new Conversation('sessionId', [new Turn('turnId', { type: 'user', message: 'hello' })]),
+				tools: {
+					availableTools: [],
+					toolInvocationToken: null as never,
+					toolReferences: [],
+				},
+			},
+			customizations: await PromptRegistry.resolveAllCustomizations(instaService, endpoint),
+		};
+		const renderer = PromptRenderer.create(instaService, endpoint, AgentPrompt, props);
+		return (await renderer.render()).messages.map(message => messageToMarkdown(message)).join('\n\n');
+	}
+
+	test('includes .lisa/rules files when present and is unchanged when the folder is absent', async () => {
+		const withoutRules = await renderPrompt();
+		expect(withoutRules).not.toContain('.lisa/rules');
+
+		await mockFiles(accessor.get(IFileSystemService) as MockFileSystemService, [
+			{ path: '/workspace/.lisa/rules/foo.md', contents: ['Always be kind to the user.'] },
+		]);
+
+		const withRules = await renderPrompt();
+		expect(withRules).toContain('/workspace/.lisa/rules/foo.md');
+		expect(withRules).toContain('Always be kind to the user.');
 	});
 });

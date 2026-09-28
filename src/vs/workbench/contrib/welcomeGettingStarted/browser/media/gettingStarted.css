@@ -97,12 +97,349 @@
 	/* keep consistant with SLIDE_TRANSITION_TIME_MS in gettingStarted.ts */
 	transition: left 0.25s, opacity 0.25s;
 }
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100%;
+	gap: 24px;
+	padding: 40px 24px;
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .header {
+	text-align: center;
+	margin-bottom: 16px;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .header h1 {
+	font-size: 32px;
+	font-weight: 600;
+	margin: 0;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .small-subtitle {
+	font-size: 12px;
+	opacity: 0.6;
+	margin-top: 8px;
+	font-weight: 400;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .start-column {
+	width: 100%;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .start-column .index-list {
+	width: 100%;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .start-column .index-list h2 {
+	font-size: 14px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 12px;
+	opacity: 0.8;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .recent-column {
+	width: 100%;
+	margin-top: 24px;
+	padding-top: 24px;
+	border-top: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .recent-column .index-list {
+	width: 100%;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .recent-column .index-list h2 {
+	font-size: 14px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 12px;
+	opacity: 0.8;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .footer {
+	width: 100%;
+	text-align: center;
+	margin-top: 16px;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .footer .showOnStartup {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+/* Responsive: stack on narrow screens */
+@media (max-width: 500px) {
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout {
+		padding: 24px 16px;
+		gap: 16px;
+	}
+
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedCategoriesContainer.flex-layout .header h1 {
+		font-size: 24px;
+	}
+}
+
 
 .monaco-workbench.monaco-reduce-motion .part.editor > .content .gettingStartedContainer .gettingStartedSlide,
 .monaco-workbench.monaco-reduce-motion .part.editor > .content .gettingStartedContainer.animatable .gettingStartedSlide {
 	/* keep consistant with SLIDE_TRANSITION_TIME_MS in gettingStarted.ts */
 	transition: left 0.0s, opacity 0.0s;
 }
+/* ========== Lisa Welcome Page - Modern Design ========== */
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-welcome-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	max-width: 700px;
+	margin: 0 auto;
+	padding: 60px 40px 40px;
+	box-sizing: border-box;
+}
+
+/* Header Section */
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-header {
+	text-align: center;
+	margin-bottom: 48px;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-title {
+	font-size: 42px;
+	font-weight: 300;
+	letter-spacing: -0.5px;
+	margin: 0;
+	color: var(--vscode-foreground);
+	line-height: 1.1;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-subtitle {
+	font-size: 13px;
+	font-weight: 400;
+	margin: 12px 0 0;
+	opacity: 0.5;
+	letter-spacing: 0.3px;
+	text-transform: lowercase;
+}
+
+/* Content Area */
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-content {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 40px;
+}
+
+/* Actions Section */
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions {
+	width: 100%;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .index-list h2 {
+	font-size: 16px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin: 0 0 16px;
+	opacity: 0.6;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .index-list ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .index-list li {
+	margin: 0;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .start-container .button-link {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 14px 16px;
+	margin: 0 -16px;
+	border-radius: 6px;
+	transition: background-color 0.15s ease;
+	cursor: pointer;
+	text-decoration: none;
+	color: var(--vscode-foreground);
+	font-size: 13px;
+	font-weight: 400;
+	border: none;
+	background: transparent;
+	width: calc(100% + 32px);
+	text-align: left;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .start-container .button-link:hover {
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .start-container .button-link:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .start-container .button-link .icon-widget {
+	font-size: 18px;
+	opacity: 0.7;
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-actions .start-container .button-link span {
+	flex: 1;
+}
+
+/* Recent Section */
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent {
+	width: 100%;
+	padding-top: 32px;
+	border-top: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.2)));
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .index-list h2 {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin: 0 0 16px;
+	opacity: 0.6;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened li {
+	display: flex;
+	align-items: center;
+	padding: 10px 16px;
+	margin: 0 -16px;
+	border-radius: 6px;
+	transition: background-color 0.15s ease;
+	gap: 12px;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened li:hover {
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened .button-link {
+	flex: 1;
+	min-width: 0;
+	background: transparent;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	text-align: left;
+	color: var(--vscode-textLink-foreground);
+	font-size: 13px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened .button-link:hover {
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened .path {
+	font-size: 12px;
+	opacity: 0.5;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	flex-shrink: 1;
+	min-width: 0;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened-delete-button {
+	opacity: 0;
+	transition: opacity 0.15s ease;
+	padding: 4px;
+	border-radius: 4px;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened li:hover .recently-opened-delete-button {
+	opacity: 0.6;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-recent .recently-opened-delete-button:hover {
+	opacity: 1 !important;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+/* Footer */
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-footer {
+	margin-top: auto;
+	padding-top: 32px;
+	text-align: center;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-footer .show-on-startup {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-footer .show-on-startup label {
+	cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-welcome-container {
+		padding: 40px 24px 24px;
+	}
+
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-title {
+		font-size: 32px;
+	}
+
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-header {
+		margin-bottom: 32px;
+	}
+
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-content {
+		gap: 32px;
+	}
+}
+
+@media (max-height: 500px) {
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-welcome-container {
+		padding-top: 24px;
+	}
+
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-header {
+		margin-bottom: 24px;
+	}
+
+	.monaco-workbench .part.editor > .content .gettingStartedContainer .lisa-title {
+		font-size: 28px;
+	}
+}
+
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer {
 	display: grid;

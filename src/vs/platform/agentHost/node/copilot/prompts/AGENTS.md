@@ -10,6 +10,7 @@ This directory customizes the system prompt for Copilot CLI **agent host** (ahp+
 - `anthropicPrompt.ts` — example per-model contributor (Claude Opus 4.8).
 - `openaiPrompt.ts` — OpenAI targeted post-edit inspection guidance, appended to `code_change_rules` without replacing the SDK foundation prompt.
 - `allPrompts.ts` — side-effect import hub; importing it registers every contributor into the shared `agentHostPromptRegistry`.
+- `../shared/lisaRules.ts` — reads and frames the workspace's `.lisa/rules/**/*.md` for the launcher; the Copilot Chat extension discovers the same directory, so the convention is shared across both surfaces.
 
 ## How the system message is built
 
@@ -17,7 +18,8 @@ Unless the matching `chat.agentHost.copilot.modelCapabilityOverrides` entry prov
 
 1. **Base** — **`_resolveModelConfig`** picks the per-model (or default) config. Falls back to `COPILOT_AGENT_HOST_SYSTEM_MESSAGE` when there's no model, no matching contributor, or the contributor opts out for this `context`. A contributor's `customize` config gets the default sections composed **underneath** it (`withDefaultSections`), so a contributor only overrides the sections it names — the default `identity` survives unless explicitly overridden.
 2. **`_withUniversalSections`** — layers the model-agnostic tool instructions on top, **composing** with — never clobbering — any per-model override for that section. For a `replace` base the lines are appended after the replacement content instead.
-3. **Workspaceless scratch + file-link contract** — appended as trailing `content` for every mode, including `replace`, so a full replacement owns the prompt body but not the host's response-format plumbing.
+3. **`_withLisaRules`** — the workspace's `.lisa/rules/**/*.md` block, read by the launcher (`../shared/lisaRules.ts`) and handed in as `context.lisaRules`. A `customize` base composes it into `custom_instructions` (preserving any contributor override there); a `replace` base, and a contributor that removed or transformed `custom_instructions`, carries it as trailing content instead. Identity itself is `COPILOT_AGENT_HOST_IDENTITY` (Lisa).
+4. **Workspaceless scratch + file-link contract** — appended as trailing `content` for every mode, including `replace`, so a full replacement owns the prompt body but not the host's response-format plumbing.
 
 The per-model prompt override supports the same fields and precedence as the Copilot Chat debug prompt override: inline YAML takes precedence over a YAML file, `systemPrompt` bypasses this registry and is sent directly as the Copilot SDK's `systemMessage` in `replace` mode, and `toolDescriptions` replaces descriptions on tools registered by Agent Host. This internal debugging setting assumes those values use the documented string shape.
 

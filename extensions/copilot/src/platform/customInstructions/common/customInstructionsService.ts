@@ -24,7 +24,7 @@ import { IFileSystemService } from '../../filesystem/common/fileSystemService';
 import { ILogService } from '../../log/common/logService';
 import { IPromptPathRepresentationService } from '../../prompts/common/promptPathRepresentationService';
 import { IWorkspaceService } from '../../workspace/common/workspaceService';
-import { COPILOT_INSTRUCTIONS_PATH, COPILOT_PERSONAL_INSTRUCTIONS_PATH, INSTRUCTION_FILE_EXTENSION, INSTRUCTIONS_LOCATION_KEY, PERSONAL_SKILL_FOLDERS, PromptsType, SKILLS_LOCATION_KEY, USE_AGENT_SKILLS_SETTING, WORKSPACE_SKILL_FOLDERS } from './promptTypes';
+import { COPILOT_INSTRUCTIONS_PATH, COPILOT_PERSONAL_INSTRUCTIONS_PATH, INSTRUCTION_FILE_EXTENSION, INSTRUCTIONS_LOCATION_KEY, PERSONAL_SKILL_FOLDERS, PromptsType, SKILLS_LOCATION_KEY, USE_AGENT_SKILLS_SETTING, WORKSPACE_LISA_RULES_FOLDER, WORKSPACE_SKILL_FOLDERS } from './promptTypes';
 
 declare const TextDecoder: {
 	decode(input: Uint8Array): string;
@@ -74,6 +74,12 @@ export interface ICustomInstructionsService {
 	fetchInstructionsFromFile(fileUri: Uri): Promise<ICustomInstructions | undefined>;
 
 	getAgentInstructions(): Promise<URI[]>;
+
+	/**
+	 * Returns all `.lisa/rules/**\/*.md` files across every workspace folder, recursively and
+	 * sorted deterministically by URI. Missing or unreadable rule folders are ignored.
+	 */
+	getWorkspaceRules(): Promise<URI[]>;
 
 	parseInstructionIndexFile(promptFileIndexText: string): IInstructionIndexFile;
 
@@ -327,6 +333,41 @@ export class CustomInstructionsService extends Disposable implements ICustomInst
 			}
 		}
 		return result;
+	}
+
+	public async getWorkspaceRules(): Promise<URI[]> {
+		const result: URI[] = [];
+		const seenFolders = new ResourceSet();
+		for (const folder of this.workspaceService.getWorkspaceFolders()) {
+			const rulesFolder = extUriBiasedIgnorePathCase.joinPath(folder, WORKSPACE_LISA_RULES_FOLDER);
+			await this.collectRuleFiles(rulesFolder, result, seenFolders);
+		}
+		result.sort((a, b) => extUriBiasedIgnorePathCase.compare(a, b));
+		return result;
+	}
+
+	private async collectRuleFiles(folderUri: URI, result: URI[], seenFolders: ResourceSet): Promise<void> {
+		if (seenFolders.has(folderUri)) {
+			return;
+		}
+		seenFolders.add(folderUri);
+
+		let entries: [string, FileType][];
+		try {
+			entries = await this.fileSystemService.readDirectory(folderUri);
+		} catch (e) {
+			// ignore non-existing / unreadable rule folders
+			return;
+		}
+
+		for (const [name, type] of entries) {
+			const childUri = extUriBiasedIgnorePathCase.joinPath(folderUri, name);
+			if ((type & FileType.Directory) !== 0) {
+				await this.collectRuleFiles(childUri, result, seenFolders);
+			} else if ((type & FileType.File) !== 0 && name.toLowerCase().endsWith('.md')) {
+				result.push(childUri);
+			}
+		}
 	}
 
 	public async fetchInstructionsFromSetting(configKey: Config<CodeGenerationInstruction[]>): Promise<ICustomInstructions[]> {

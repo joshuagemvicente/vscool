@@ -11684,7 +11684,7 @@ suite('CopilotAgent', () => {
 				assert.strictEqual(systemMessage.sections?.identity?.action, 'replace');
 				assert.strictEqual(
 					systemMessage.sections?.identity?.content,
-					'You are an AI assistant using Copilot SDK in VS Code. You help users with software engineering tasks. When asked about your identity, you must state that you are an AI assistant using Copilot SDK in VS Code.'
+					'You are Lisa, an AI coding assistant in VS Code. You help users with software engineering tasks. When asked about your identity, you must state that you are Lisa, an AI coding assistant in VS Code.'
 				);
 			} finally {
 				await disposeAgent(agent);

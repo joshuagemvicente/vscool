@@ -19,6 +19,7 @@ export class MockCustomInstructionsService implements ICustomInstructionsService
 	private skillFiles = new Map<string, SkillStorage>();
 	private externalFiles = new Set<string>();
 	private externalFolders = new Set<string>();
+	private workspaceRules: URI[] = [];
 	private extensionSkillInfos = new Map<string, ISkillInfo & { extensionId: string }>();
 
 	parseInstructionIndexFile(promptFileIndexText: string): IInstructionIndexFile {
@@ -117,6 +118,17 @@ export class MockCustomInstructionsService implements ICustomInstructionsService
 
 	getAgentInstructions(): Promise<URI[]> {
 		return Promise.resolve([]);
+	}
+
+	/**
+	 * Set the URIs that should be returned as workspace rule files.
+	 */
+	setWorkspaceRules(uris: URI[]): void {
+		this.workspaceRules = uris;
+	}
+
+	getWorkspaceRules(): Promise<URI[]> {
+		return Promise.resolve(this.workspaceRules);
 	}
 
 	refreshExtensionPromptFiles(): Promise<void> {

@@ -67,6 +67,58 @@ suite('AgentHostPromptRegistry', () => {
 		assert.deepStrictEqual(registry.resolveSystemMessageConfig({ id: 'unknown-model' }, context()), withUniversalAgentHostInstructions(COPILOT_AGENT_HOST_SYSTEM_MESSAGE));
 	});
 
+	test('layers workspace Lisa rules as custom instructions (customize mode)', () => {
+		const registry = new AgentHostPromptRegistry();
+		assert.deepStrictEqual(
+			registry.resolveSystemMessageConfig({ id: 'unknown-model' }, { ...context(), lisaRules: 'RULES' }),
+			withUniversalAgentHostInstructions({
+				mode: 'customize',
+				sections: {
+					identity: COPILOT_AGENT_HOST_SYSTEM_MESSAGE.sections.identity,
+					custom_instructions: { action: 'append', content: '\nRULES' },
+				},
+			})
+		);
+	});
+
+	test('Lisa rules compose with a contributor custom_instructions override', () => {
+		const registry = new AgentHostPromptRegistry();
+		registry.registerPrompt(class {
+			static readonly familyPrefixes = ['claude'];
+			resolveSectionOverrides(): Partial<Record<SystemMessageSection, SectionOverride>> {
+				return { custom_instructions: { action: 'append', content: 'HOUSE STYLE' } };
+			}
+		});
+		const resolved = registry.resolveSystemMessageConfig({ id: 'claude-sonnet' }, { ...context(), lisaRules: 'RULES' });
+		assert.deepStrictEqual(resolved.sections?.custom_instructions, { action: 'append', content: '\nHOUSE STYLE\nRULES' });
+	});
+
+	test('Lisa rules survive a contributor that removes custom_instructions', () => {
+		const registry = new AgentHostPromptRegistry();
+		registry.registerPrompt(class {
+			static readonly familyPrefixes = ['claude'];
+			resolveSectionOverrides(): Partial<Record<SystemMessageSection, SectionOverride>> {
+				return { custom_instructions: { action: 'remove' } };
+			}
+		});
+		const resolved = registry.resolveSystemMessageConfig({ id: 'claude-sonnet' }, { ...context(), lisaRules: 'RULES' });
+		assert.deepStrictEqual(resolved.sections?.custom_instructions, { action: 'remove' });
+		assert.ok(resolved.content?.includes('RULES'), 'rules must not be dropped silently');
+	});
+
+	test('Lisa rules survive a full prompt replacement', () => {
+		const registry = new AgentHostPromptRegistry();
+		registry.registerPrompt(class {
+			static readonly familyPrefixes = ['gpt-5'];
+			resolveFullSystemPrompt(): string {
+				return 'FULL PROMPT';
+			}
+		});
+		const resolved = registry.resolveSystemMessageConfig({ id: 'gpt-5-mini' }, { ...context(), lisaRules: 'RULES' });
+		assert.strictEqual(resolved.mode, 'replace');
+		assert.ok(resolved.content?.includes('\n\nRULES\n\n'));
+	});
+
 	test('a contributor can fully replace the system prompt (replace mode, universal appends survive)', () => {
 		const registry = new AgentHostPromptRegistry();
 		registry.registerPrompt(class {

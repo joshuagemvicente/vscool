@@ -9,7 +9,7 @@ import type { SchemaValue } from '../../../common/agentHostSchema.js';
 import type { ModelSelection } from '../../../common/state/protocol/state.js';
 import { AGENT_HOST_FILE_LINK_INSTRUCTIONS } from '../../shared/fileLinkInstructions.js';
 import { AGENT_HOST_WORKSPACELESS_INSTRUCTIONS } from '../../shared/workspacelessInstructions.js';
-import { appendSystemMessageContent, COPILOT_AGENT_HOST_SYSTEM_MESSAGE, fullSystemPrompt, sectionOverrides, withDefaultSections } from './systemMessage.js';
+import { appendSystemMessageContent, composeSectionOverride, COPILOT_AGENT_HOST_SYSTEM_MESSAGE, fullSystemPrompt, sectionOverrides, withDefaultSections } from './systemMessage.js';
 import { resolveToolInstructionsOverride, toolSearchInstructionLines, universalToolInstructions, type IToolInstructionContext } from './toolInstructions.js';
 
 type CopilotCliConfigDefinition = typeof copilotCliConfigSchema.definition;
@@ -60,6 +60,18 @@ export interface IAgentHostPromptContext {
 	 * from the session's `workspaceless` marker.
 	 */
 	workspaceless: boolean;
+
+	/**
+	 * The workspace's rendered `.lisa/rules` block (see `readWorkspaceLisaRules`
+	 * in `node/shared/lisaRules.ts`), or `undefined` when the workspace has no
+	 * such rules.
+	 *
+	 * Pre-resolved by the launcher at launch time: contributors are synchronous
+	 * and cannot do file I/O, and the SDK accepts a system message only at
+	 * session create/resume. Editing a rule file therefore takes effect the next
+	 * time the session launches.
+	 */
+	lisaRules?: string;
 }
 
 /**
@@ -157,7 +169,8 @@ export class AgentHostPromptRegistry {
 	 */
 	resolveSystemMessageConfig(model: ModelSelection | undefined, context: IAgentHostPromptContext): SystemMessageConfig {
 		const config = this._withUniversalSections(this._resolveModelConfig(model, context), context);
-		const withWorkspacelessScratch = this._withWorkspacelessScratch(config, context);
+		const withLisaRules = this._withLisaRules(config, context);
+		const withWorkspacelessScratch = this._withWorkspacelessScratch(withLisaRules, context);
 		return appendSystemMessageContent(withWorkspacelessScratch, AGENT_HOST_FILE_LINK_INSTRUCTIONS);
 	}
 
@@ -214,6 +227,32 @@ export class AgentHostPromptRegistry {
 			return config;
 		}
 		return { ...config, sections: { ...config.sections, tool_instructions: toolInstructions } };
+	}
+
+	/**
+	 * Layers the workspace's `.lisa/rules` block on top, so the user's standing
+	 * rules apply to a contributor's `customize` config and to a `replace` prompt
+	 * alike.
+	 *
+	 * A `customize` config composes the rules into its `custom_instructions`
+	 * section, preserving any override a contributor already set there. When a
+	 * contributor deliberately removed or transformed that section, the rules are
+	 * carried as trailing content instead of being dropped — rules are the
+	 * user's, so they outlive a per-model decision about the section.
+	 */
+	private _withLisaRules(config: SystemMessageConfig, context: IAgentHostPromptContext): SystemMessageConfig {
+		const rules = context.lisaRules;
+		if (!rules) {
+			return config;
+		}
+		if (config.mode !== 'customize') {
+			return appendSystemMessageContent(config, rules);
+		}
+		const existing = config.sections?.custom_instructions;
+		if (existing && (existing.action === 'remove' || typeof existing.action === 'function')) {
+			return appendSystemMessageContent(config, rules);
+		}
+		return { ...config, sections: { ...config.sections, custom_instructions: composeSectionOverride(existing, rules) } };
 	}
 
 	/**

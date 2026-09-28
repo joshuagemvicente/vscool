@@ -131,6 +131,17 @@ export class CustomInstructions extends PromptElement<CustomInstructionsProps> {
 					}
 				}
 			}
+			const ruleFiles = await this.customInstructionsService.getWorkspaceRules();
+			for (const ruleFile of ruleFiles) {
+				if (!hasSeen.has(ruleFile)) {
+					hasSeen.add(ruleFile);
+					const element = await this.createElementFromRuleFile(ruleFile);
+					if (element && !hasSeenContent.has(element.content)) {
+						hasSeenContent.add(element.content);
+						chunks.push(element.chuck);
+					}
+				}
+			}
 		}
 
 		const customInstructions: ICustomInstructions[] = [];
@@ -202,6 +213,27 @@ export class CustomInstructions extends PromptElement<CustomInstructionsProps> {
 			};
 		} catch (e) {
 			this.logService.debug(`Instruction file not found: ${fileUri.toString()}`);
+			return undefined;
+		}
+	}
+
+	private async createElementFromRuleFile(fileUri: URI): Promise<{ chuck: PromptElement; content: string } | undefined> {
+		try {
+			const fileContents = await this.fileSystemService.readFile(fileUri);
+			const content = new TextDecoder().decode(fileContents).trim();
+			if (content.length === 0) {
+				return undefined;
+			}
+			const filePath = this.promptPathRepresentationService.getFilePath(fileUri);
+			return {
+				chuck: <>
+					<references value={[new InstructionFileReference(fileUri, content)]} />
+					<TextChunk>{`${filePath}:\n${content}`}</TextChunk>
+				</>,
+				content
+			};
+		} catch (e) {
+			this.logService.debug(`Rule file not found: ${fileUri.toString()}`);
 			return undefined;
 		}
 	}
